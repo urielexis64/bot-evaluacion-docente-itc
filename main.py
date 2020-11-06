@@ -36,7 +36,6 @@ def signInEvaDoc(controlNumber, password='holahola'):
     try:
         # Open a new tab with the specified web (maximized)
         driver.get('https://evadoc.culiacan.tecnm.mx/index.php')
-        driver.fullscreen_window()
 
         # Locate the text fields to enter the credentials
         controlTxt = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "usuario3")))
@@ -66,7 +65,7 @@ def evaluate():
         # A for cycle from 0 to 27 (because there are 27 questions)
         for questionNumber in range(0, 27):
             # Generate a random number to choose different options in each question ("Indeciso" option is the least likely)
-            number = random.randint(0, 2 if questionNumber % 7 == 0 else 1)
+            number = random.randint(0, 2 if questionNumber % 9 == 0 else 1)
 
             # Locate the first option of each question and click on it
             r = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(n))))
@@ -86,9 +85,10 @@ def evaluate():
 
         # Locate "Envio" button to submit our teacher evaluation
         WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "envio"))).click()
+        sleep(1)
     except Exception:
         # Sign off of your account
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > table > tbody > tr:nth-child(8) > td > form > table > tbody > tr:nth-child(7) > td > table > tbody > tr > td > strong > font > a"))).click()
+        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[2]/td[2]/strong/a"))).click()
         driver.quit()
         print(f"\n{Fore.GREEN}It's done! Your teacher evaluation is complete! :)")
         exit(0)
