@@ -11,7 +11,7 @@ $ git clone https://github.com/urielexis64/bot-evaluacion-docente-itc.git
 # O ejecuta el .exe que te dejo por acá
 ```
 
-![demo](https://github.com/urielexis64/bot-evaluacion-docente-itc/assets/demo.gif)
+![demo](https://github.com/urielexis64/bot-evaluacion-docente-itc/blob/main/assets/demo.gif)
 
 ## Librerías necesarias (Python 3) 📚
 
