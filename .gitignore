@@ -1,2 +1,8 @@
 venv
 .idea
+dist
+build
+README.rst
+pyproject.toml
+poetry.lock
+main.spec
