@@ -2,6 +2,11 @@
 
 EvadocBot es un bot que realiza tu evaluación docente de manera automática. Escrito en Python usando la librería [Selenium](https://pypi.org/project/selenium/) y [chromedriver](https://chromedriver.chromium.org/)
 
+## Demo 💻
+<p align="center">
+<img src="https://github.com/urielexis64/bot-evaluacion-docente-itc/blob/main/assets/demo.gif" width="60%"/>
+</p>
+
 ## Uso 🐱‍💻
 
 ```
@@ -10,8 +15,6 @@ $ git clone https://github.com/urielexis64/bot-evaluacion-docente-itc.git
 
 # O ejecuta el .exe que te dejo por acá
 ```
-
-![demo](https://github.com/urielexis64/bot-evaluacion-docente-itc/blob/main/assets/demo.gif)
 
 ## Librerías necesarias (Python 3) 📚
 
