@@ -11,87 +11,213 @@ from time import sleep
 # Generate random numbers to decide each option pseudorandomly
 import random
 
-# To print messages with color on console
-from colorama import Fore
+from functions import resource_path
+import os
+from colorama import init, Fore, Style
 
 # Init driver var to use it as global
 driver = None
 
+# Student variables
+control_number = 0
+student_info = []
+career = ''
+teachers = []
+currentTeacherIndex = 0
+maxRightMovements = -1
+
+# Variable modes
+isDebugging = False
+isAutomatic = False
+
 
 def run():
+    global control_number
     # Enter your credentials by console
-    controlNumber = input("Número de control: ")
-    password = input("Contraseña(default: 'holahola'):  ")
+    control_number = input("\nPor favor, ingresa tu número de control:\n>>> ")
+    password = input("Contraseña: (Enter = holahola)\n>>> ")
+
+    print("\nPerfecto! Ahora iniciaré sesión y empezaré a evaluar...")
 
     # Initialize webdriver and execute signInEvaDoc function
     try:
         global driver
-        driver = webdriver.Chrome()
-        signInEvaDoc(controlNumber)
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        driver = webdriver.Chrome(resource_path('chromedriver.exe'), options=options)
+        signInEvaDoc(control_number, password)
     except Exception as e:
         print(e)
 
 
-def signInEvaDoc(controlNumber, password='holahola'):
+def signInEvaDoc(controlNumber, password):
     try:
         # Open a new tab with the specified web (maximized)
         driver.get('https://evadoc.culiacan.tecnm.mx/index.php')
 
         # Locate the text fields to enter the credentials
-        controlTxt = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "usuario3")))
-        passwordTxt = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "pass3")))
-        loginBtn = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "entra3")))
+        controlTxt = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID, "usuario3")))
+        passwordTxt = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID, "pass3")))
+        loginBtn = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID, "entra3")))
 
         # Write the credentials you enter in each text field and click login button
         controlTxt.send_keys(controlNumber)
-        passwordTxt.send_keys(password)
+        passwordTxt.send_keys(password or 'holahola')
         loginBtn.click()
+
+        # get info about current student
+        getInfo()
+
+        print(f"\nWow! Veo que serás un(a) gran ingeniero(a){career}\n")
 
         # An infinite loop to evaluate all the teachers (it ends when all teachers are evaluated)
         while 1:
             evaluate()
-    except Exception as e:
-        print(e)
+    except Exception:
+        print('Parece que ingresaste un número de control inválido.\nIntenta de nuevo.')
+        driver.quit()
+        run()
+    except SystemExit:
+        raise SystemExit
 
 
 def evaluate():
+    global maxRightMovements
     try:
         # Locate "Evaluar" button and click on it
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "accion"))).click()
+        evaluateBtn = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID, "accion")))
+
+        # Assign a default number (automatic) or the one you enter for each teacher
+        # This number is used to decide among all the options (with index 0-5)
+        maxRightMovements = 2 if isAutomatic else getTeacher()
+
+        evaluateBtn.click()
 
         # This int var is used to locate correctly each question by its index
-        n = 0
+        questionIndex = 0
 
         # A for cycle from 0 to 27 (because there are 27 questions)
-        for questionNumber in range(0, 27):
-            # Generate a random number to choose different options in each question ("Indeciso" option is the least likely)
-            number = random.randint(0, 2 if questionNumber % 9 == 0 else 1)
+        for questionNumber in range(27):
+            currentQuestionMovements = getRandom(maxRightMovements)
 
             # Locate the first option of each question and click on it
-            r = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(n))))
-            r.click()
+            option = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(questionIndex))))
+            option.click()
 
             # If the random number is > 0, then press RIGHT key 'number' times
-            for _ in range(0, number):
-                r.send_keys(Keys.RIGHT)
+            for _ in range(currentQuestionMovements):
+                option.send_keys(Keys.RIGHT)
 
             # We need to refresh the option selected to continue
-            r = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(n + number))))
-            r.send_keys(Keys.SPACE)
-            r.send_keys(Keys.TAB)
+            option = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(questionIndex + max))))
+            option.send_keys(Keys.SPACE)
+            option.send_keys(Keys.TAB)
 
             # The first question option is always divisible by 5, so we add 5 at each end of question
-            n += 5
+            questionIndex += 5
 
-        # Locate "Envio" button to submit our teacher evaluation
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "envio"))).click()
-        sleep(1)
-    except Exception:
+        if isDebugging:
+            # If debugging, click on  Cancelar" button
+            driver.find_element_by_xpath('//*[@id="evalua"]/p/input[2]').click()
+        else:
+            # Or locate "Envio" button to submit our teacher evaluation
+            WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.ID, "envio"))).click()
+
+    except Exception as e:
         # Sign off of your account
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[2]/td[2]/strong/a"))).click()
+        signoff(True if maxRightMovements == -1 else False)
+
+
+def getInfo():
+    global student_info, career, teachers
+
+    student_info = driver.find_element_by_xpath("/html/body/table/tbody/tr[3]/td").text
+    student_info = student_info.split('\n')
+
+    if len(student_info) == 1:
+        student_info.append('CARRERA NO ENCONTRADA')
+
+    career = driver.find_element_by_xpath("/html/body/table/tbody/tr[3]/td/span").text
+    career = (career[10:].lower() if len(career) != 0 else ' mecatrónico(a)') \
+        if career[10:].lower()[-1:] not in ['a', 'o'] else career[10:].lower()[:-1] + 'o(a)'
+
+    tempList = []
+    teachers = driver.find_elements_by_class_name('estilo2')
+    teachers.reverse()
+    for t in range(len(teachers)):
+        tempList.append(teachers.pop().text)
+    teachers = tempList
+
+
+def getTeacher():
+    global currentTeacherIndex
+    rate = int(input(f"¿Qué opinas de \"{teachers[currentTeacherIndex]}\"? (1: Bueno, 2: Regular, 3: Malo)\n>>> "))
+    currentTeacherIndex += 1
+    return rate
+
+
+def getRandom(max):
+    # Generate a random number to choose different options in each question
+    number = random.randint(0, max)
+    return number
+
+
+def getStudentName():
+    global student_info
+    return student_info[0].split(" - ")[1]
+
+
+def getStudentCareer():
+    global student_info
+    return student_info[1]
+
+
+def signoff(alreadyEvaluated: bool):
+    if not alreadyEvaluated:
+        print("Cerrando sesión...")
+        # Locate 'Cerrar sesión' button ad click on it
+        WebDriverWait(driver, 1).until(
+            EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[2]/td[2]/strong/a"))).click()
         driver.quit()
-        print(f"\n{Fore.GREEN}It's done! Your teacher evaluation is complete! :)")
-        exit(0)
+        print(f"\nMuy bien, {getStudentName().title()}, ya quedó tu evaluación docente ;)\n")
+    else:
+        print("Hmm... parece que ya habías realizado tu evaluación docente. Qué responsable.\n")
+        driver.quit()
+
+    if input("¿Quieres realizar otra evaluación? (S = Sí | N = No)\n>>> ").lower() == 's':
+        reset()
+    else:
+        print("Hasta luego, gracias por utilizarme :)")
+        sleep(2)
+        raise SystemExit
+
+def reset():
+    global currentTeacherIndex, maxRightMovements
+    currentTeacherIndex = 0
+    maxRightMovements = -1
+    run()
 
 if __name__ == "__main__":
+    init(convert=True)
+    os.system('cls')
+    os.system('mode 85, 40')
+    print(f"{Fore.LIGHTCYAN_EX}   Created by urielexis64")
+    print(f"""{Fore.LIGHTBLUE_EX}
+   ███████╗██╗░░░██╗░█████╗░██████╗░░█████╗░░█████╗░██████╗░░█████╗░████████╗
+   ██╔════╝██║░░░██║██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝
+   █████╗░░╚██╗░██╔╝███████║██║░░██║██║░░██║██║░░╚═╝██████╦╝██║░░██║░░░██║░░░
+   ██╔══╝░░░╚████╔╝░██╔══██║██║░░██║██║░░██║██║░░██╗██╔══██╗██║░░██║░░░██║░░░
+   ███████╗░░╚██╔╝░░██║░░██║██████╔╝╚█████╔╝╚█████╔╝██████╦╝╚█████╔╝░░░██║░░░
+   ╚══════╝░░░╚═╝░░░╚═╝░░╚═╝╚═════╝░░╚════╝░░╚════╝░╚═════╝░░╚════╝░░░░╚═╝░░░\n""")
+    print(f"{Fore.LIGHTYELLOW_EX}DEBUGGING: En este modo se accede normalmente a la cuenta, pero no se\n"
+          "           envían las evaluaciones como tal, solo se simula que se hace.\n\n"
+          f"{Fore.LIGHTYELLOW_EX}AUTOMÁTICO: Si está activado, se realizarán todas las evaluaciones de los\n"
+          "            maestros variando la opción elegida (Compl. de acuerdo,\n"
+          "            De acuerdo, Indeciso, etc.) con un valor default de 2 (Compl. \n"
+          "            de acuerdo, De acuerdo, Indeciso).\n")
+    print(f"{Fore.LIGHTWHITE_EX}DEBBUGING? (Y/N)\n>>>  ", end='')
+    if input().lower() == 'y':
+        isDebugging = True
+    if input("Automático? (Y/N)\n>>> ").lower() == 'y':
+        isAutomatic = True
     run()
