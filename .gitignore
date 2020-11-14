@@ -1,2 +1,12 @@
 venv
 .idea
+__pycache__/
+
+# Poetry files
+build
+dist
+*.lock
+*.toml
+*.rst
+*.spec
+*.log

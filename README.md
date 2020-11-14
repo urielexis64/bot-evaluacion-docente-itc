@@ -4,25 +4,29 @@ EvadocBot es un bot que realiza tu evaluación docente de manera automática. Es
 
 ## Demo 💻
 <p align="center">
-<img src="https://github.com/urielexis64/bot-evaluacion-docente-itc/blob/main/assets/demo.gif" width="60%"/>
+<img src="https://github.com/urielexis64/bot-evaluacion-docente-itc/blob/main/assets/media/demo.gif" width="60%"/>
 </p>
+
+## Pre-requisitos 📋📚
+
+- Versión de Windows > 2008
+- Tener Google Chrome instalado
 
 ## Uso 🐱‍💻
 
+### Clona este repositorio
 ```
-# Clona este repositorio
 $ git clone https://github.com/urielexis64/bot-evaluacion-docente-itc.git
-
-# O ejecuta el .exe que te dejo por acá
+```
+### Instala las siguientes librerías:
+```
+- selenium
+- colorama
+- pyodbc (OPCIONAL, en caso de querer guardar a los evaluados en una base de datos)
 ```
 
-## Librerías necesarias (Python 3) 📚
-
-* selenium
-* colorama
-* pyodbc (en caso de querer guardar a los evaluados en una base de datos)
-
-Puedes instalarlas con el comando **pip install nombre_libreria**
+## Si gustas, puedes instalarlo: 😁
+### [Descargar EvadocbotInstaller](https://github.com/urielexis64/bot-evaluacion-docente-itc/raw/main/assets/EvadocbotInstaller.exe)
 
 ## Limitaciones
 Por ahora solo se puede ejecutar en Windows y en el navegador Google Chrome, pronto en Firefox 🦊🌚
@@ -30,5 +34,5 @@ Por ahora solo se puede ejecutar en Windows y en el navegador Google Chrome, pro
 ## Contribución ❤
 Cualquier idea nueva o correción de errores es bienvenida!
 
-## License
+## Licencia
 [MIT](https://choosealicense.com/licenses/mit/)

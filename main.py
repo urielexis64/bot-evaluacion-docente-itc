@@ -11,9 +11,9 @@ from time import sleep
 # Generate random numbers to decide each option pseudorandomly
 import random
 
-from functions import resource_path
+from functions import resource_path, TITLE
 import os
-from colorama import init, Fore, Style
+from colorama import init, Fore
 
 # Init driver var to use it as global
 driver = None
@@ -89,7 +89,7 @@ def evaluate():
 
         # Assign a default number (automatic) or the one you enter for each teacher
         # This number is used to decide among all the options (with index 0-5)
-        maxRightMovements = 2 if isAutomatic else getTeacher()
+        maxRightMovements = 2 if isAutomatic else getTeacherRate()
 
         evaluateBtn.click()
 
@@ -141,15 +141,12 @@ def getInfo():
     career = (career[10:].lower() if len(career) != 0 else ' mecatrónico(a)') \
         if career[10:].lower()[-1:] not in ['a', 'o'] else career[10:].lower()[:-1] + 'o(a)'
 
-    tempList = []
     teachers = driver.find_elements_by_class_name('estilo2')
-    teachers.reverse()
     for t in range(len(teachers)):
-        tempList.append(teachers.pop().text)
-    teachers = tempList
+        teachers[t] = teachers[t].text
 
 
-def getTeacher():
+def getTeacherRate():
     global currentTeacherIndex
     rate = int(input(f"¿Qué opinas de \"{teachers[currentTeacherIndex]}\"? (1: Bueno, 2: Regular, 3: Malo)\n>>> "))
     currentTeacherIndex += 1
@@ -158,17 +155,15 @@ def getTeacher():
 
 def getRandom(max):
     # Generate a random number to choose different options in each question
-    number = random.randint(0, max)
+    number = random.randint(max)
     return number
 
 
 def getStudentName():
-    global student_info
     return student_info[0].split(" - ")[1]
 
 
 def getStudentCareer():
-    global student_info
     return student_info[1]
 
 
@@ -201,20 +196,7 @@ if __name__ == "__main__":
     init(convert=True)
     os.system('cls')
     os.system('mode 85, 40')
-    print(f"{Fore.LIGHTCYAN_EX}   Created by urielexis64")
-    print(f"""{Fore.LIGHTBLUE_EX}
-   ███████╗██╗░░░██╗░█████╗░██████╗░░█████╗░░█████╗░██████╗░░█████╗░████████╗
-   ██╔════╝██║░░░██║██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝
-   █████╗░░╚██╗░██╔╝███████║██║░░██║██║░░██║██║░░╚═╝██████╦╝██║░░██║░░░██║░░░
-   ██╔══╝░░░╚████╔╝░██╔══██║██║░░██║██║░░██║██║░░██╗██╔══██╗██║░░██║░░░██║░░░
-   ███████╗░░╚██╔╝░░██║░░██║██████╔╝╚█████╔╝╚█████╔╝██████╦╝╚█████╔╝░░░██║░░░
-   ╚══════╝░░░╚═╝░░░╚═╝░░╚═╝╚═════╝░░╚════╝░░╚════╝░╚═════╝░░╚════╝░░░░╚═╝░░░\n""")
-    print(f"{Fore.LIGHTYELLOW_EX}DEBUGGING: En este modo se accede normalmente a la cuenta, pero no se\n"
-          "           envían las evaluaciones como tal, solo se simula que se hace.\n\n"
-          f"{Fore.LIGHTYELLOW_EX}AUTOMÁTICO: Si está activado, se realizarán todas las evaluaciones de los\n"
-          "            maestros variando la opción elegida (Compl. de acuerdo,\n"
-          "            De acuerdo, Indeciso, etc.) con un valor default de 2 (Compl. \n"
-          "            de acuerdo, De acuerdo, Indeciso).\n")
+    print(TITLE)
     print(f"{Fore.LIGHTWHITE_EX}DEBBUGING? (Y/N)\n>>>  ", end='')
     if input().lower() == 'y':
         isDebugging = True
