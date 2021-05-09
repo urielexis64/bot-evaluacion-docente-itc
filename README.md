@@ -22,7 +22,7 @@ $ git clone https://github.com/urielexis64/bot-evaluacion-docente-itc.git
 ```
 - selenium
 - colorama
-- pyodbc (OPCIONAL, en caso de querer guardar a los evaluados en una base de datos)
+- requests
 ```
 
 ## Si gustas, puedes instalarlo: 😁
