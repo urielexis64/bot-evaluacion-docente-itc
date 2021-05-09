@@ -166,7 +166,6 @@ def getStudentName():
 def getStudentCareer():
     return student_info[1]
 
-
 def signoff(alreadyEvaluated: bool):
     if not alreadyEvaluated:
         print("Cerrando sesión...")
