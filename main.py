@@ -14,6 +14,7 @@ import random
 from functions import resource_path, TITLE
 import os
 from colorama import init, Fore
+import requests
 
 # Init driver var to use it as global
 driver = None
@@ -125,7 +126,7 @@ def evaluate():
 
     except Exception as e:
         # Sign off of your account
-        signoff(True if maxRightMovements == -1 else False)
+        signoff(maxRightMovements == -1)
 
 
 def getInfo():
@@ -191,14 +192,36 @@ def reset():
     maxRightMovements = -1
     run()
 
+def downloadChromedriver():
+    print(f"{Fore.GREEN}Verificando última versión de chromedriver.")
+    print("Por favor, espere...\n")
+    print(f"{Fore.YELLOW}Presiona Ctrl + C para saltarte esta verificación.")
+
+    download_url = 'https://github.com/urielexis64/bot-evaluacion-docente-itc/raw/main/chromedriver.exe'
+    r = requests.get(download_url, allow_redirects=True)
+
+    with open('chromedriver.exe', 'wb') as chromedriver:
+        chromedriver.write(r.content)
+
 if __name__ == "__main__":
     init(convert=True)
-    os.system('cls')
-    os.system('mode 85, 40')
-    print(TITLE)
-    print(f"{Fore.LIGHTWHITE_EX}DEBBUGING? (Y/N)\n>>>  ", end='')
-    if input().lower() == 'y':
-        isDebugging = True
-    if input("Automático? (Y/N)\n>>> ").lower() == 'y':
-        isAutomatic = True
-    run()
+    try:
+        downloadChromedriver()
+    except KeyboardInterrupt:
+        raise SystemExit
+    finally:
+        # for windows OS
+        if os.name == "nt":
+            os.system("cls")
+        # for linux / Mac OS
+        else:
+            os.system("clear")
+
+        os.system('mode 85, 40')
+        print(TITLE)
+        print(f"{Fore.LIGHTWHITE_EX}DEBBUGING? (Y/N)\n>>>  ", end='')
+        if input().lower() == 'y':
+            isDebugging = True
+        if input("Automático? (Y/N)\n>>> ").lower() == 'y':
+            isAutomatic = True
+        run()
