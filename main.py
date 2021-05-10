@@ -98,7 +98,7 @@ def evaluate():
         questionIndex = 0
 
         # A for cycle from 0 to 27 (because there are 27 questions)
-        for questionNumber in range(27):
+        for questionNumber in range(28):
             currentQuestionMovements = getRandom(maxRightMovements)
 
             # Locate the first option of each question and click on it
@@ -110,7 +110,7 @@ def evaluate():
                 option.send_keys(Keys.RIGHT)
 
             # We need to refresh the option selected to continue
-            option = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(questionIndex + max))))
+            option = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(questionIndex + currentQuestionMovements))))
             option.send_keys(Keys.SPACE)
             option.send_keys(Keys.TAB)
 
@@ -156,7 +156,7 @@ def getTeacherRate():
 
 def getRandom(max):
     # Generate a random number to choose different options in each question
-    number = random.randint(max)
+    number = random.randint(0, max)
     return number
 
 
