@@ -24,8 +24,10 @@ control_number = 0
 student_info = []
 career = ''
 teachers = []
+comment = ''
 currentTeacherIndex = 0
 maxRightMovements = -1
+minRightMovements = -1
 
 # Variable modes
 isDebugging = False
@@ -83,23 +85,38 @@ def signInEvaDoc(controlNumber, password):
 
 
 def evaluate():
-    global maxRightMovements
+    global maxRightMovements, comment, minRightMovements
     try:
+        comment = ''
+
         # Locate "Evaluar" button and click on it
         evaluateBtn = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.ID, "accion")))
 
         # Assign a default number (automatic) or the one you enter for each teacher
         # This number is used to decide among all the options (with index 0-5)
-        maxRightMovements = 2 if isAutomatic else getTeacherRate()
+        teacherRate = getTeacherRate() if not isAutomatic else ''
+        maxRightMovements = 2 if isAutomatic else teacherRate
+
+        if maxRightMovements in [1, 2]:
+            minRightMovements = 0
+        else:
+            maxRightMovements += 1
+            minRightMovements = 2
+
+        if teacherRate == 1:
+            comment = 'Excelente docente.'
+        elif teacherRate == 3:
+            comment = 'Pésimo docente.'
 
         evaluateBtn.click()
 
         # This int var is used to locate correctly each question by its index
         questionIndex = 0
 
-        # A for cycle from 0 to 27 (because there are 27 questions)
+        # A for cycle from 0 to 28 (because there are 28 questions)
         for questionNumber in range(28):
-            currentQuestionMovements = getRandom(maxRightMovements)
+
+            currentQuestionMovements = getRandom(minRightMovements, maxRightMovements)
 
             # Locate the first option of each question and click on it
             option = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.ID, "r" + str(questionIndex))))
@@ -117,6 +134,11 @@ def evaluate():
             # The first question option is always divisible by 5, so we add 5 at each end of question
             questionIndex += 5
 
+        commentArea = WebDriverWait(driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="sComentarios"]')))
+        commentArea.click()
+        commentArea.send_keys(comment)
+
         if isDebugging:
             # If debugging, click on  Cancelar" button
             driver.find_element_by_xpath('//*[@id="evalua"]/p/input[2]').click()
@@ -126,6 +148,7 @@ def evaluate():
 
     except Exception as e:
         # Sign off of your account
+        print(e)
         signoff(maxRightMovements == -1)
 
 
@@ -149,14 +172,19 @@ def getInfo():
 
 def getTeacherRate():
     global currentTeacherIndex
-    rate = int(input(f"¿Qué opinas de \"{teachers[currentTeacherIndex]}\"? (1: Bueno, 2: Regular, 3: Malo)\n>>> "))
+    while 1:
+        rate = int(input(f"{Fore.WHITE}¿Qué opinas de \"{teachers[currentTeacherIndex]}\"? (1: Bueno, 2: Regular, 3: Malo)\n>>> "))
+        if rate not in [1, 2, 3]:
+            print(f'{Fore.RED}Solo valores del 1 al 3')
+        else:
+            break
     currentTeacherIndex += 1
     return rate
 
 
-def getRandom(max):
+def getRandom(min, max):
     # Generate a random number to choose different options in each question
-    number = random.randint(0, max)
+    number = random.randint(min, max)
     return number
 
 
